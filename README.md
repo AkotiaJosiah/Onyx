@@ -15,5 +15,5 @@ Generates strong passwords continuously in the terminal and saves them automatic
 Clone the repository:
 
 ```bash
-git clone https://github.com/<username>/kali-password-generator.git
+git clone https://github.com/<AkotiaJosiah>/Kali-Password-Generator.git
 cd kali-password-generator
