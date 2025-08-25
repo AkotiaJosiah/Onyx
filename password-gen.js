@@ -17,7 +17,8 @@ function generatePassword(charset, length) {
       /[a-z]/.test(pw) &&
       /[A-Z]/.test(pw) &&
       /[0-9]/.test(pw) &&
-      /[!@#$%^&*()_+\[\]{}|;:,.<>?/~`-=]/.test(pw)
+      /[-!@#$%^&*()_+\[\]{}|;:,.<>?/~`]/
+.test(pw)
     ) return pw;
   }
 }
