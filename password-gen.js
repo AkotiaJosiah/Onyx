@@ -1,47 +1,72 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const readline = require('readline');
-const path = require('path');
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const fs = require("fs");
+const readline = require("readline");
 
-const PASSWORD_FILE = path.join(__dirname, 'passwords.txt');
+function askQuestion(query) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) => rl.question(query, (ans) => {
+    rl.close();
+    resolve(ans);
+  }));
+}
 
-function generatePassword(charset, length) {
+// Generator for all possible passwords
+function* generateAll(charset, length) {
+  const n = charset.length;
+  const indices = Array(length).fill(0);
+
   while (true) {
-    let pw = '';
-    for (let i = 0; i < length; i++) {
-      pw += charset[Math.floor(Math.random() * charset.length)];
+    yield indices.map(i => charset[i]).join("");
+
+    // Increase like odometer
+    let pos = length - 1;
+    while (pos >= 0) {
+      indices[pos]++;
+      if (indices[pos] < n) break;
+      indices[pos] = 0;
+      pos--;
     }
-    if (
-      /[a-z]/.test(pw) &&
-      /[A-Z]/.test(pw) &&
-      /[0-9]/.test(pw) &&
-      /[-!@#$%^&*()_+\[\]{}|;:,.<>?/~`]/
-.test(pw)
-    ) return pw;
+    if (pos < 0) break;
   }
 }
 
-function savePassword(pw) {
-  fs.appendFileSync(PASSWORD_FILE, pw + '\n');
+async function main() {
+  const charset = await askQuestion("Enter allowed characters: ");
+  const length = parseInt(await askQuestion("Enter password length: "), 10);
+  const fileName = await askQuestion("Enter filename to save passwords: ");
+
+  const total = BigInt(Math.pow(charset.length, length));
+  const file = fs.createWriteStream(fileName, { flags: "a" });
+
+  let count = 0n;
+  const barLength = 30n; // number of symbols in progress bar
+
+  const gen = generateAll(charset.split(""), length);
+
+  for (let pw of gen) {
+    if (!file.write(pw + "\n")) {
+      // backpressure handling
+      await new Promise(resolve => file.once("drain", resolve));
+    }
+    count++;
+
+    // Show progress bar (with "=" instead of "#")
+    if (count % 1000n === 0n || count === total) {
+      const percent = Number((count * 100n) / total);
+      const filled = Math.floor((percent / 100) * Number(barLength));
+
+      process.stdout.write(
+        `\rProgress: [${"=".repeat(filled)}${"-".repeat(Number(barLength) - filled)}] ${percent}%`
+      );
+    }
+  }
+
+  await new Promise(resolve => file.end(resolve)); // <-- ensures file closes & flushes
+  console.log(`\nDone. ${count} passwords saved to ${fileName}`);
 }
 
-rl.question('Enter allowed characters: ', (chars) => {
-  rl.question('Enter password length: ', (lenInput) => {
-    const length = parseInt(lenInput);
-    console.log(`\nGenerating passwords... Saved to ${PASSWORD_FILE}`);
-    console.log('Press Ctrl+C to stop.\n');
-
-    if (!fs.existsSync(PASSWORD_FILE)) fs.writeFileSync(PASSWORD_FILE, '');
-
-    function loop() {
-      const pw = generatePassword(chars, length);
-      console.log(pw);
-      savePassword(pw);
-      setImmediate(loop);
-    }
-
-    loop();
-  });
-});
+main();
