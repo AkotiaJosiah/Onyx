@@ -1,0 +1,25 @@
+{
+  "name": "kali-password-generator",
+  "version": "1.0.0",
+  "description": "A strong password generator designed for Kali Linux.  \r Generates strong passwords continuously in the terminal and saves them automatically.",
+  "main": "password-gen.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AkotiaJosiah/Kali-Password-Generator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AkotiaJosiah/Kali-Password-Generator/issues"
+  },
+  "homepage": "https://github.com/AkotiaJosiah/Kali-Password-Generator#readme",
+  "dependencies": {
+    "chalk": "^5.6.0",
+    "inquirer": "^12.9.4"
+  }
+}
